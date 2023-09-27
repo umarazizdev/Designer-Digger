@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "851171060037",
+    "project_id": "designerdigger-8549d",
+    "storage_bucket": "designerdigger-8549d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:851171060037:android:3dcad09c9e79cc9d92362c",
+        "android_client_info": {
+          "package_name": "com.example.designerdigger"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "851171060037-l49sljtpd987e7i25c5j3moe27ah3ssu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9cdfHXBPnT2vGUXSAm07cwK9v5qgZnf0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "851171060037-l49sljtpd987e7i25c5j3moe27ah3ssu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
