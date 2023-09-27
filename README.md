@@ -14,11 +14,11 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
-![alt text](https://github.com/umarazizdev/NotePad/blob/main/assets/images/1)
-![alt text](https://github.com/umarazizdev/NotePad/blob/main/assets/images/2)
-![alt text](https://github.com/umarazizdev/NotePad/blob/main/assets/images/3)
-![alt text](https://github.com/umarazizdev/NotePad/blob/main/assets/images/4)
-![alt text](https://github.com/umarazizdev/NotePad/blob/main/assets/images/5)
-![alt text](https://github.com/umarazizdev/NotePad/blob/main/assets/images/6)
-![alt text](https://github.com/umarazizdev/NotePad/blob/main/assets/images/7)
-![alt text](https://github.com/umarazizdev/NotePad/blob/main/assets/images/8)
+![alt text](https://github.com/umarazizdev/Designer-Digger/blob/main/images/1.jpg)
+![alt text](https://github.com/umarazizdev/Designer-Digger/blob/main/images/2.jpg)
+![alt text](https://github.com/umarazizdev/Designer-Digger/blob/main/images/3.jpg)
+![alt text](https://github.com/umarazizdev/Designer-Digger/blob/main/images/4.jpg)
+![alt text](https://github.com/umarazizdev/Designer-Digger/blob/main/images/5.jpg)
+![alt text](https://github.com/umarazizdev/Designer-Digger/blob/main/images/6.jpg)
+![alt text](https://github.com/umarazizdev/Designer-Digger/blob/main/images/7.jpg)
+![alt text](https://github.com/umarazizdev/Designer-Digger/blob/main/images/8.jpg)
