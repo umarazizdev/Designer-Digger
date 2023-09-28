@@ -1,19 +1,23 @@
-# designerdigger
+# Designer Digger
 
-A new Flutter project.
+Designer Digger Food Delivery App is a Flutter-based mobile application designed to simplify and enhance the food ordering experience. It caters to users who crave fast food, including items like ice cream, pizza, and burgers. This app provides a user-friendly interface with several essential functions to make the food ordering process seamless and enjoyable.
 
-## Getting Started
+# Usage
 
-This project is a starting point for a Flutter application.
+Once you have the app up and running, you can:
 
-A few resources to get you started if this is your first Flutter project:
+Register and log in for a personalized experience.
+Browse a mouthwatering menu of fast food items, including ice cream, pizza, and burgers.
+Add your favorite items to the cart and proceed with the order.
+Save frequently ordered items to your favorites for quick access.
+Edit your profile to customize your experience and view your order history.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+# Contact
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+If you have any questions or suggestions, please feel free to contact us at umar.aziz.dev@gmail.com
+
+## Screenshots
+
 ![alt text](https://github.com/umarazizdev/Designer-Digger/blob/main/images/1.jpg)
 ![alt text](https://github.com/umarazizdev/Designer-Digger/blob/main/images/2.jpg)
 ![alt text](https://github.com/umarazizdev/Designer-Digger/blob/main/images/3.jpg)
