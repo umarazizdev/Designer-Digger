@@ -12,11 +12,12 @@ Add your favorite items to the cart and proceed with the order.
 Save frequently ordered items to your favorites for quick access.
 Edit your profile to customize your experience and view your order history.
 
-# 📧Contact
+# 📧 Contact
 
 If you have any questions or suggestions, please feel free to contact us at umar.aziz.dev@gmail.com
 
-## 📷Screenshots
+## 📷 Screenshots
+<img src="images/1.jpg" height="500em" />&nbsp;<img src="images/2.jpg" height="500em" />&nbsp;<img src="images/3.jpg" height="500em" />
 <img src="images/1.jpg"/>
 
 | 1 | 2|
