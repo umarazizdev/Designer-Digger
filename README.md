@@ -17,23 +17,13 @@ Edit your profile to customize your experience and view your order history.
 If you have any questions or suggestions, please feel free to contact us at umar.aziz.dev@gmail.com
 
 ## 📷 Screenshots
-<img src="images/1.jpg" height="500em"      />&nbsp;<img src="images/2.jpg" height="500em" />&nbsp;<img src="images/3.jpg" height="500em" />
-<img src="images/1.jpg"/>
-
-| 1 | 2|
+| 1 | 2 | 3|
 |------|-------|
-|<img src="images/2.jpg" width="400">|<img src="images/3.jpg" width="400">|
+|<img src="images/1.jpg" height="500em" />|&nbsp;|<img src="images/2.jpg" height="500em" />|&nbsp;|<img src="images/3.jpg" height="500em" />|
+| 4 | 5 | 6|
+|------|-------|-------|
+|<img src="images/4.jpg" height="500em" />|&nbsp;|<img src="images/5.jpg" height="500em" />|&nbsp;|<img src="images/6.jpg" height="500em" />|
+| 7 | 8|
+|------|-------|-------|
+|<img src="images/7.jpg" height="500em" />|&nbsp;|<img src="images/8.jpg" height="500em" />|
 
-| 3 | 4|
-|------|-------|
-|<img src="images/4.jpg" width="400">|<img src="images/5.jpg" width="400">|
-
-
-![alt text](https://github.com/umarazizdev/Designer-Digger/blob/main/images/1.jpg)
-![alt text](https://github.com/umarazizdev/Designer-Digger/blob/main/images/2.jpg)
-![alt text](https://github.com/umarazizdev/Designer-Digger/blob/main/images/3.jpg)
-![alt text](https://github.com/umarazizdev/Designer-Digger/blob/main/images/4.jpg)
-![alt text](https://github.com/umarazizdev/Designer-Digger/blob/main/images/5.jpg)
-![alt text](https://github.com/umarazizdev/Designer-Digger/blob/main/images/6.jpg)
-![alt text](https://github.com/umarazizdev/Designer-Digger/blob/main/images/7.jpg)
-![alt text](https://github.com/umarazizdev/Designer-Digger/blob/main/images/8.jpg)
