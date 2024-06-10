@@ -17,7 +17,7 @@ Edit your profile to customize your experience and view your order history.
 If you have any questions or suggestions, please feel free to contact us at umar.aziz.dev@gmail.com
 
 ## 📷 Screenshots
-<img src="images/1.jpg" height="500em" />&nbsp;<img src="images/2.jpg" height="500em" />&nbsp;<img src="images/3.jpg" height="500em" />
+<img src="images/1.jpg" height="500em"      />&nbsp;<img src="images/2.jpg" height="500em" />&nbsp;<img src="images/3.jpg" height="500em" />
 <img src="images/1.jpg"/>
 
 | 1 | 2|
