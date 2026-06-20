@@ -1,15 +1,10 @@
 buildscript {
-    ext.kotlin_version = '1.7.10'
     repositories {
         google()
         mavenCentral()
     }
-
     dependencies {
-        classpath 'com.google.gms:google-services:4.3.15'
-        classpath 'com.google.gms:google-services:4.3.8'
-        classpath 'com.android.tools.build:gradle:7.3.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.google.gms:google-services:4.4.2'
     }
 }
 
@@ -23,6 +18,18 @@ allprojects {
 rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects { subproject ->
+    subproject.pluginManager.withPlugin("com.android.library") {
+        subproject.android {
+            if (namespace == null) {
+                def manifest = subproject.file("src/main/AndroidManifest.xml")
+                if (manifest.exists()) {
+                    namespace = new groovy.xml.XmlSlurper().parse(manifest).'@package'.text()
+                }
+            }
+        }
+    }
 }
 subprojects {
     project.evaluationDependsOn(':app')
