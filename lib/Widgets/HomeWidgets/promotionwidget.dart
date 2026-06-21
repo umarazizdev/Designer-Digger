@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class PromotionWidget extends StatelessWidget {
   final Stream<QuerySnapshot> _promotionsStream =
-      FirebaseFirestore.instance.collection('promotions').snapshots();
+      FirebaseFirestore.instance.collection('digger_promotions').snapshots();
 
   PromotionWidget({
     super.key,

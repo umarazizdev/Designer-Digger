@@ -1,4 +1,5 @@
 import 'package:designerdigger/Utilities/Provider/securepass.dart';
+import 'package:designerdigger/Utilities/auth_validators.dart';
 import 'package:designerdigger/Utilities/colors.dart';
 import 'package:designerdigger/Utilities/utils.dart';
 import 'package:designerdigger/main.dart';
@@ -17,30 +18,46 @@ class SignInView extends StatefulWidget {
 class _SignInViewState extends State<SignInView> {
   bool isLoading = false;
   signin() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
     setState(() {
       isLoading = true;
     });
     try {
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: emailController.text, password: passwordController.text);
+        email: emailController.text.trim(),
+        password: passwordController.text,
+      );
       box.write('uid', credential.user!.uid);
       box.write('islogin', true);
-      GoRouter.of(context).go('/mainview');
-      Utils.toastmessage("Login Succesfully");
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        GoRouter.of(context).go('/mainview');
+        Utils.toastmessage("Login Successfully");
+      }
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
       if (e.code == 'user-not-found') {
         Utils.flushBarErrorMessage('No user found for that email.', context);
       } else if (e.code == 'wrong-password') {
         Utils.flushBarErrorMessage(
             'Wrong password provided for that user.', context);
+      } else if (e.code == 'invalid-email') {
+        Utils.flushBarErrorMessage('Please enter a valid email.', context);
+      } else if (e.code == 'invalid-credential') {
+        Utils.flushBarErrorMessage('Invalid email or password.', context);
+      } else {
+        Utils.flushBarErrorMessage(
+            e.message ?? 'Sign in failed. Please try again.', context);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
       }
     }
-    setState(() {
-      isLoading = false;
-    });
   }
 
   final _formKey = GlobalKey<FormState>();
@@ -90,13 +107,9 @@ class _SignInViewState extends State<SignInView> {
                       child: TextFormField(
                         controller: emailController,
                         keyboardType: TextInputType.emailAddress,
-                        validator: (value) {
-                          if (value!.isEmpty) {
-                            return Utils.flushBarErrorMessage(
-                                "Please Enter Email", context);
-                          }
-                          return null;
-                        },
+                        textInputAction: TextInputAction.next,
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        validator: AuthValidators.email,
                         decoration: InputDecoration(
                           hintText: "Enter Email",
                           hintStyle:
@@ -121,15 +134,12 @@ class _SignInViewState extends State<SignInView> {
                           padding: const EdgeInsets.symmetric(
                               vertical: 12.0, horizontal: 15),
                           child: TextFormField(
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return Utils.flushBarErrorMessage(
-                                    "Please Enter password", context);
-                              }
-                              return null;
-                            },
+                            validator: AuthValidators.password,
                             controller: passwordController,
                             obscureText: !value.securepass,
+                            textInputAction: TextInputAction.done,
+                            autovalidateMode: AutovalidateMode.onUserInteraction,
+                            onFieldSubmitted: (_) => signin(),
                             decoration: InputDecoration(
                               suffixIcon: InkWell(
                                 onTap: () {
@@ -165,16 +175,7 @@ class _SignInViewState extends State<SignInView> {
                     ),
                     const Spacer(),
                     InkWell(
-                      onTap: () {
-                        if (_formKey.currentState!.validate()) {
-                          setState(() {
-                            isLoading = false;
-                          });
-                          signin();
-                          GoRouter.of(context).go('/mainview');
-                          Utils.toastmessage("Login Succesfully");
-                        }
-                      },
+                      onTap: isLoading ? null : signin,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 15.0),
                         child: Container(

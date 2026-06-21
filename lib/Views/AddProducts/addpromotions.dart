@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:designerdigger/Utilities/colors.dart';
+import 'package:designerdigger/Utilities/digger_storage_service.dart';
 import 'package:designerdigger/Utilities/utils.dart';
 import 'package:designerdigger/main.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -31,10 +31,8 @@ class _AddPromotionsState extends State<AddPromotions> {
     setState(() {
       isLoading = true;
     });
-    Reference db = FirebaseStorage.instance.ref("image/${getImageName(image)}");
-
-    await db.putFile(File(image.path));
-    return await db.getDownloadURL().then((value) async {
+    final value = await DiggerStorageService.uploadPromotionImage(image);
+    return await Future.value(value).then((value) async {
       users
           .add({
             'image': value,
@@ -66,7 +64,7 @@ class _AddPromotionsState extends State<AddPromotions> {
 
   final _formkey = GlobalKey<FormState>();
   CollectionReference users =
-      FirebaseFirestore.instance.collection('promotions');
+      FirebaseFirestore.instance.collection('digger_promotions');
 
   var titleController = TextEditingController();
   var subtitleController = TextEditingController();

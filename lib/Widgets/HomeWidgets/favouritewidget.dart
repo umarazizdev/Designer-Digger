@@ -1,8 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:designerdigger/Utilities/colors.dart';
+import 'package:designerdigger/Utilities/digger_user_service.dart';
 import 'package:designerdigger/Utilities/utils.dart';
 import 'package:designerdigger/main.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class FavouriteWidget extends StatefulWidget {
@@ -21,79 +22,82 @@ class FavouriteWidget extends StatefulWidget {
 class _FavouriteWidgetState extends State<FavouriteWidget> {
   bool isLiked = false;
 
+  String get _favouriteDocId => DiggerUserService.userItemDocId(widget.docid);
+
   @override
   void initState() {
-    checkLikeStatus();
     super.initState();
+    checkLikeStatus();
   }
 
-  void checkLikeStatus() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
-      return;
+  Future<void> checkLikeStatus() async {
+    if (FirebaseAuth.instance.currentUser == null) return;
+
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('digger_favourites')
+          .doc(_favouriteDocId)
+          .get();
+
+      if (!mounted) return;
+      setState(() {
+        isLiked = snapshot.exists;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        isLiked = false;
+      });
     }
-
-    final snapshot = await FirebaseFirestore.instance
-        .collection('favourites')
-        .doc(widget.docid)
-        .get();
-
-    setState(() {
-      isLiked = snapshot.exists;
-    });
   }
 
   Future<void> deleteLike() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
-      return;
-    }
+    if (FirebaseAuth.instance.currentUser == null) return;
 
-    return FirebaseFirestore.instance
-        .collection('favourites')
-        .doc(widget.docid)
-        .delete()
-        .catchError((error) => Utils.flushBarErrorMessage(
-            "Failed to delete user: $error", context));
+    await FirebaseFirestore.instance
+        .collection('digger_favourites')
+        .doc(_favouriteDocId)
+        .delete();
   }
 
   Future<void> addLike() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
-      return;
-    }
+    if (FirebaseAuth.instance.currentUser == null) return;
 
-    return FirebaseFirestore.instance
-        .collection('favourites')
-        .doc(widget.docid)
+    await FirebaseFirestore.instance
+        .collection('digger_favourites')
+        .doc(_favouriteDocId)
         .set({
-          'image': widget.image,
-          'productname': widget.productname,
-          'productprice': widget.productprice,
-          'uid': box.read('uid'),
-        })
-        .then((value) =>
-            Utils.toastmessage("${widget.productname} added to favourites "))
-        .catchError(
-          (error) =>
-              Utils.flushBarErrorMessage("Failed to add user: $error", context),
-        );
+      'image': widget.image,
+      'productname': widget.productname,
+      'productprice': widget.productprice,
+      'productId': widget.docid,
+      'uid': DiggerUserService.currentUid ?? box.read('uid'),
+    });
+    if (mounted) {
+      Utils.toastmessage('${widget.productname} added to favourites');
+    }
   }
 
-  void toggleLike() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
-      return;
-    }
+  Future<void> toggleLike() async {
+    if (FirebaseAuth.instance.currentUser == null) return;
 
+    final wasLiked = isLiked;
     setState(() {
       isLiked = !isLiked;
     });
 
-    if (isLiked) {
-      await addLike();
-    } else {
-      await deleteLike();
+    try {
+      if (!wasLiked) {
+        await addLike();
+      } else {
+        await deleteLike();
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        isLiked = wasLiked;
+      });
+      Utils.flushBarErrorMessage('Could not update favourites.', context);
     }
   }
 

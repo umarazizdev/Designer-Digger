@@ -1,9 +1,14 @@
+// DISABLED: OTP phone verification is not used.
+// Previously navigated to /profilepic after OTP; profile pic now follows email signup in SignUpView.
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:designerdigger/Utilities/auth_validators.dart';
 import 'package:designerdigger/Utilities/colors.dart';
 import 'package:designerdigger/Utilities/utils.dart';
 import 'package:designerdigger/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 class VerifyPhoneNumberView extends StatefulWidget {
@@ -23,6 +28,10 @@ class _PhoneNumberViewState extends State<VerifyPhoneNumberView> {
   String verificationId = '';
 
   Future<void> signInWithPhoneNumber() async {
+    if (!_formkey.currentState!.validate()) {
+      return;
+    }
+
     setState(() {
       isLoading = true;
     });
@@ -32,7 +41,7 @@ class _PhoneNumberViewState extends State<VerifyPhoneNumberView> {
     try {
       PhoneAuthCredential credential = PhoneAuthProvider.credential(
         verificationId: widget.id,
-        smsCode: PhonenumberController.text,
+        smsCode: PhonenumberController.text.trim(),
       );
 
       UserCredential userCredential =
@@ -43,7 +52,7 @@ class _PhoneNumberViewState extends State<VerifyPhoneNumberView> {
         // String token = await user.getIdToken(); // Retrieve the token
         // ignore: avoid_print
         final DocumentReference documentRef =
-            FirebaseFirestore.instance.collection("users").doc(box.read('uid'));
+            FirebaseFirestore.instance.collection("digger_users").doc(box.read('uid'));
         final Map<String, dynamic> newData = {
           'phonenumber': widget.phonenumb,
           'uid': box.read('uid')
@@ -55,18 +64,17 @@ class _PhoneNumberViewState extends State<VerifyPhoneNumberView> {
             )
             .then((value) {})
             .whenComplete(() {
-          // box.write('uid', box.read('uid'));
+          if (!mounted) return;
           box.write('islogin', true);
           context.push('/profilepic');
           setState(() {
             isLoading = false;
           });
-          // searchProvider.setLoading(false);
         }).catchError((error) {
+          if (!mounted) return;
           setState(() {
             isLoading = false;
           });
-          // searchProvider.setLoading(false);
 
           print("Failed to add user: $error");
         });
@@ -76,16 +84,14 @@ class _PhoneNumberViewState extends State<VerifyPhoneNumberView> {
         Utils.toastmessage('User registration failed');
       }
     } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      // searchProvider.setLoading(false);
-
-      Utils.toastmessage('Error occurred during registration: $e');
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+        Utils.flushBarErrorMessage(
+            'Invalid OTP. Please check the code and try again.', context);
+      }
     }
-
-    // ignore: avoid_returning_null_for_void
-    return null;
   }
 
   final _formkey = GlobalKey<FormState>();
@@ -139,19 +145,20 @@ class _PhoneNumberViewState extends State<VerifyPhoneNumberView> {
                             vertical: 12.0, horizontal: 15),
                         child: TextFormField(
                           controller: PhonenumberController,
-                          validator: (value) {
-                            if (value!.isEmpty) {
-                              return Utils.flushBarErrorMessage(
-                                  "Please Enter Otp", context);
-                            }
-                            return null;
-                          },
+                          validator: AuthValidators.otp,
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(6),
+                          ],
                           onChanged: (value) {
                             setState(() {
                               phoneNumber = value;
                             });
                           },
-                          keyboardType: TextInputType.phone,
+                          keyboardType: TextInputType.number,
+                          textInputAction: TextInputAction.done,
+                          onFieldSubmitted: (_) => signInWithPhoneNumber(),
                           decoration: InputDecoration(
                             hintText: "Enter Otp",
                             hintStyle:
@@ -174,19 +181,7 @@ class _PhoneNumberViewState extends State<VerifyPhoneNumberView> {
                         height: sc.height * 0.015,
                       ),
                       InkWell(
-                        onTap: () {
-                          if (_formkey.currentState!.validate()) {
-                            setState(() {
-                              isLoading = false;
-                            });
-                            if (PhonenumberController.text.isEmpty) {
-                              Utils.flushBarErrorMessage(
-                                  'Please Enter Otp', context);
-                            } else {
-                              signInWithPhoneNumber();
-                            }
-                          }
-                        },
+                        onTap: isLoading ? null : signInWithPhoneNumber,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 15.0),
                           child: Container(

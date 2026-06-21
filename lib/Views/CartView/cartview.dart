@@ -15,7 +15,7 @@ class CartView extends StatefulWidget {
 
 class _CartViewState extends State<CartView> {
   final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
-      .collection('cartitems')
+      .collection('digger_cartitems')
       .where('uid', isEqualTo: box.read('uid'))
       .snapshots();
 
@@ -144,7 +144,7 @@ class _CartViewState extends State<CartView> {
                                       onPressed: () {
                                         CollectionReference users =
                                             FirebaseFirestore.instance
-                                                .collection('cartitems');
+                                                .collection('digger_cartitems');
                                         users
                                             .doc(data.id)
                                             .delete()

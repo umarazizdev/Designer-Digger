@@ -1,0 +1,73 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdminUser() {
+      return isSignedIn()
+        && firestore.get(/databases/(default)/documents/user_data/$(request.auth.uid)).data.role in ['admin', 'super-admin'];
+    }
+
+    function isComplaintOwner(complaintId) {
+      return isSignedIn()
+        && firestore.get(/databases/(default)/documents/complaints/$(complaintId)).data.studentUid == request.auth.uid;
+    }
+
+    match /profile_photos/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn()
+        && fileName == request.auth.uid + '.jpg'
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /student_cards/{fileName} {
+      allow read: if isSignedIn() && (isAdminUser() || fileName == request.auth.uid + '.jpg');
+      allow write: if isSignedIn()
+        && fileName == request.auth.uid + '.jpg'
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /complaints/{complaintId}/{fileName} {
+      allow read: if isSignedIn()
+        && (isAdminUser() || isComplaintOwner(complaintId));
+      allow write: if isSignedIn()
+        && (isAdminUser() || isComplaintOwner(complaintId))
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // =========================================================================
+    // Designer-Digger app only (added below — other app rules above unchanged)
+    // Storage path prefix: digger_app/
+    // =========================================================================
+
+    match /digger_app/users/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /digger_app/products/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /digger_app/promotions/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+  }
+}

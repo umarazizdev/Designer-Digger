@@ -8,7 +8,9 @@ import 'package:designerdigger/Utilities/Provider/securepass.dart';
 import 'package:designerdigger/Utilities/Provider/themeprovider.dart';
 import 'package:designerdigger/Utilities/Routes/approutes.dart';
 import 'package:designerdigger/Utilities/colors.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:get_storage/get_storage.dart';
@@ -18,8 +20,14 @@ final box = GetStorage();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  final box = GetStorage();
-  runApp(MyApp());
+  await FirebaseAppCheck.instance.activate(
+    androidProvider:
+        kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
+    appleProvider:
+        kDebugMode ? AppleProvider.debug : AppleProvider.appAttest,
+  );
+  await GetStorage.init();
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

@@ -1,7 +1,13 @@
+// DISABLED: Phone verification is not used.
+// Original flow: SignUp → phone → OTP → /profilepic → /mainview
+// Current flow: SignUp → /profilepic → /mainview
+
+import 'package:designerdigger/Utilities/auth_validators.dart';
 import 'package:designerdigger/Utilities/colors.dart';
 import 'package:designerdigger/Utilities/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 class PhoneNumberView extends StatefulWidget {
@@ -17,12 +23,16 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
   String verificationId = '';
 
   void registerWithPhoneNumber(String phoneNumber) async {
+    if (!_formkey.currentState!.validate()) {
+      return;
+    }
+
     try {
       setState(() {
         isLoading = true;
       });
       await _auth.verifyPhoneNumber(
-        phoneNumber: "+92${phoneNumber}",
+        phoneNumber: "+92$phoneNumber",
         verificationCompleted: (PhoneAuthCredential credential) async {
           await _auth.signInWithCredential(credential);
         },
@@ -122,13 +132,13 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
                             Expanded(
                               child: TextFormField(
                                 controller: PhonenumberController,
-                                validator: (value) {
-                                  if (value!.isEmpty) {
-                                    return Utils.flushBarErrorMessage(
-                                        "Please Enter Phone Number", context);
-                                  }
-                                  return null;
-                                },
+                                validator: AuthValidators.pakistaniPhone,
+                                autovalidateMode:
+                                    AutovalidateMode.onUserInteraction,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(10),
+                                ],
                                 onChanged: (value) {
                                   setState(() {
                                     phoneNumber = value;
@@ -166,23 +176,11 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
                         height: sc.height * 0.015,
                       ),
                       InkWell(
-                        onTap: () {
-                          if (_formkey.currentState!.validate()) {
-                            setState(() {
-                              isLoading = false;
-                            });
-                            if (PhonenumberController.text.length < 10) {
-                              Utils.flushBarErrorMessage(
-                                  "Please enter correct phone number", context);
-                            } else if (PhonenumberController.text[0] != '3') {
-                              Utils.flushBarErrorMessage(
-                                  "Please enter correct phone number", context);
-                            } else {
-                              registerWithPhoneNumber(
-                                  PhonenumberController.text);
-                            }
-                          }
-                        },
+                        onTap: isLoading
+                            ? null
+                            : () => registerWithPhoneNumber(
+                                  PhonenumberController.text.trim(),
+                                ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 15.0),
                           child: Container(

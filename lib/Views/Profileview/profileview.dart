@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:designerdigger/Utilities/colors.dart';
+import 'package:designerdigger/Utilities/digger_user_service.dart';
+import 'package:designerdigger/Utilities/user_document_utils.dart';
 import 'package:designerdigger/Utilities/utils.dart';
 import 'package:designerdigger/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,10 +16,8 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
-  final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
-      .collection('users')
-      .where('uid', isEqualTo: box.read('uid'))
-      .snapshots();
+  Stream<DocumentSnapshot> get _usersStream =>
+      DiggerUserService.profileStream();
 
   @override
   Widget build(BuildContext context) {
@@ -42,63 +42,57 @@ class _ProfileViewState extends State<ProfileView> {
                   SizedBox(
                     height: sc.height * 0.07,
                   ),
-                  StreamBuilder<QuerySnapshot>(
+                  StreamBuilder<DocumentSnapshot>(
                     stream: _usersStream,
                     builder: (BuildContext context,
-                        AsyncSnapshot<QuerySnapshot> snapshot) {
-                      if (snapshot.hasError) {
-                        return const Text('');
-                      }
+                        AsyncSnapshot<DocumentSnapshot> snapshot) {
+                      final data = snapshot.data;
+                      final hasProfile =
+                          data != null && data.exists && !snapshot.hasError;
+                      final avatarUrl = hasProfile
+                          ? UserDocumentUtils.avatar(data)
+                          : UserDocumentUtils.defaultAvatar;
+                      final name = hasProfile
+                          ? UserDocumentUtils.name(data)
+                          : (box.read('name')?.toString() ?? 'User');
 
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Text("");
-                      }
-
-                      return ListView.builder(
-                        itemCount: 1,
-                        shrinkWrap: true,
-                        physics: const ScrollPhysics(),
-                        itemBuilder: (context, index) {
-                          final data = snapshot.data!.docs[index];
-                          return Stack(
-                            children: [
-                              Center(
-                                child: SizedBox(
-                                  height: sc.height / 4,
-                                  width: sc.width / 2,
-                                  child: CircleAvatar(
-                                    backgroundImage:
-                                        NetworkImage(data['avatar']),
+                      return Stack(
+                        children: [
+                          Center(
+                            child: SizedBox(
+                              height: sc.height / 4,
+                              width: sc.width / 2,
+                              child: CircleAvatar(
+                                backgroundImage: NetworkImage(avatarUrl),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                              right: 100,
+                              top: 10,
+                              child: Container(
+                                height: sc.height * 0.065,
+                                width: sc.width * 0.095,
+                                decoration: const BoxDecoration(
+                                  color: whiteclr,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: IconButton(
+                                    onPressed: () {
+                                      context.push(
+                                        '/editprofileview',
+                                        extra: name,
+                                      );
+                                    },
+                                    icon: const Icon(
+                                      Icons.edit,
+                                      color: blackclr,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              Positioned(
-                                  right: 100,
-                                  top: 10,
-                                  child: Container(
-                                    height: sc.height * 0.065,
-                                    width: sc.width * 0.095,
-                                    decoration: const BoxDecoration(
-                                      color: whiteclr,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Center(
-                                      child: IconButton(
-                                        onPressed: () {
-                                          var name = data['name'];
-                                          context.push('/editprofileview',
-                                              extra: name);
-                                        },
-                                        icon: const Icon(
-                                          Icons.edit,
-                                          color: blackclr,
-                                        ),
-                                      ),
-                                    ),
-                                  ))
-                            ],
-                          );
-                        },
+                              ))
+                        ],
                       );
                     },
                   ),
@@ -107,6 +101,29 @@ class _ProfileViewState extends State<ProfileView> {
             ],
           ),
           const Spacer(),
+          StreamBuilder<DocumentSnapshot>(
+            stream: _usersStream,
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return _settingsMenu(context, sc, isAdmin: false);
+              }
+
+              final isAdmin = UserDocumentUtils.isAdmin(snapshot.data);
+
+              return _settingsMenu(context, sc, isAdmin: isAdmin);
+            },
+          ),
+          const Spacer(),
+        ],
+      ),
+    );
+  }
+
+  Widget _settingsMenu(BuildContext context, Size sc, {required bool isAdmin}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (isAdmin) ...[
           InkWell(
             onTap: () {
               GoRouter.of(context).push('/addpromotionsview');
@@ -121,19 +138,15 @@ class _ProfileViewState extends State<ProfileView> {
                   ),
                   10.pw,
                   const Text(
-                    "Add Promotions",
-                    style: TextStyle(
-                      fontSize: 16,
-                    ),
+                    'Add Promotions',
+                    style: TextStyle(fontSize: 16),
                   ),
                 ],
               ),
             ),
           ),
           10.ph,
-          const Divider(
-            color: greyclr,
-          ),
+          const Divider(color: greyclr),
           InkWell(
             onTap: () {
               GoRouter.of(context).push('/addproductsview');
@@ -148,102 +161,89 @@ class _ProfileViewState extends State<ProfileView> {
                   ),
                   10.pw,
                   const Text(
-                    "Add Products",
-                    style: TextStyle(
-                      fontSize: 16,
-                    ),
+                    'Add Products',
+                    style: TextStyle(fontSize: 16),
                   ),
                 ],
               ),
             ),
           ),
           10.ph,
-          const Divider(
-            color: greyclr,
-          ),
-          InkWell(
-            onTap: () {
-              GoRouter.of(context).push('/cartview');
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(left: 15.0, top: 10),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.shopping_cart_outlined,
-                    size: sc.height * 0.04,
-                  ),
-                  10.pw,
-                  const Text(
-                    "Shopping Cart",
-                    style: TextStyle(
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          10.ph,
-          const Divider(
-            color: greyclr,
-          ),
-          InkWell(
-            onTap: () {
-              context.push('/darkview');
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(left: 15.0, top: 10),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.dark_mode_outlined,
-                    size: sc.height * 0.04,
-                  ),
-                  10.pw,
-                  const Text(
-                    "Dark Mode",
-                    style: TextStyle(
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          10.ph,
-          const Divider(
-            color: greyclr,
-          ),
-          InkWell(
-            onTap: () async {
-              box.write('islogin', false);
-              await FirebaseAuth.instance.signOut();
-              GoRouter.of(context).go('/signin');
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(left: 15.0, top: 10),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.logout,
-                    size: sc.height * 0.04,
-                  ),
-                  10.pw,
-                  const Text(
-                    "Logout",
-                    style: TextStyle(
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          10.ph,
-          const Spacer(),
+          const Divider(color: greyclr),
         ],
-      ),
+        InkWell(
+          onTap: () {
+            GoRouter.of(context).push('/cartview');
+          },
+          child: Padding(
+            padding: const EdgeInsets.only(left: 15.0, top: 10),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.shopping_cart_outlined,
+                  size: sc.height * 0.04,
+                ),
+                10.pw,
+                const Text(
+                  'Shopping Cart',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ],
+            ),
+          ),
+        ),
+        10.ph,
+        const Divider(color: greyclr),
+        InkWell(
+          onTap: () {
+            context.push('/darkview');
+          },
+          child: Padding(
+            padding: const EdgeInsets.only(left: 15.0, top: 10),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.dark_mode_outlined,
+                  size: sc.height * 0.04,
+                ),
+                10.pw,
+                const Text(
+                  'Dark Mode',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ],
+            ),
+          ),
+        ),
+        10.ph,
+        const Divider(color: greyclr),
+        InkWell(
+          onTap: () async {
+            box.write('islogin', false);
+            await FirebaseAuth.instance.signOut();
+            if (context.mounted) {
+              GoRouter.of(context).go('/signin');
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.only(left: 15.0, top: 10),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.logout,
+                  size: sc.height * 0.04,
+                ),
+                10.pw,
+                const Text(
+                  'Logout',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ],
+            ),
+          ),
+        ),
+        10.ph,
+      ],
     );
   }
 }

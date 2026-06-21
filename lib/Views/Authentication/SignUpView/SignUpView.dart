@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:designerdigger/Utilities/Provider/securepass.dart';
+import 'package:designerdigger/Utilities/auth_validators.dart';
 import 'package:designerdigger/Utilities/colors.dart';
+import 'package:designerdigger/Utilities/user_document_utils.dart';
 import 'package:designerdigger/Utilities/utils.dart';
-import 'package:designerdigger/Views/Authentication/SignUpView/PhoneNumber/verifynumber.dart';
 import 'package:designerdigger/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -17,10 +18,14 @@ class SignUpView extends StatefulWidget {
 }
 
 class _SignUpViewState extends State<SignUpView> {
-  CollectionReference users = FirebaseFirestore.instance.collection('users');
+  CollectionReference users = FirebaseFirestore.instance.collection('digger_users');
   bool isLoading = false;
 
   Future<void> SignUp() async {
+    if (!_formkey.currentState!.validate()) {
+      return;
+    }
+
     setState(() {
       isLoading = true;
     });
@@ -29,34 +34,48 @@ class _SignUpViewState extends State<SignUpView> {
       final credential =
           await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: emailController.text.trim(),
-        password: passwordController.text.trim(),
+        password: passwordController.text,
       );
 
       await users.doc(credential.user!.uid).set({
-        'name': nameController.text,
-        'email': emailController.text,
+        'name': nameController.text.trim(),
+        'email': emailController.text.trim(),
         'password': passwordController.text,
         'uid': credential.user!.uid,
+        'avatar': UserDocumentUtils.defaultAvatar,
       });
 
       box.write('uid', credential.user!.uid);
-      box.write('name', nameController.text);
+      box.write('name', nameController.text.trim());
+      box.write('islogin', true);
 
-      GoRouter.of(context).go('/phonenumberview');
+      if (mounted) {
+        GoRouter.of(context).go('/profilepic');
+      }
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
       if (e.code == 'weak-password') {
         Utils.flushBarErrorMessage(
             'The password provided is too weak.', context);
       } else if (e.code == 'email-already-in-use') {
         Utils.flushBarErrorMessage(
             'The account already exists for that email.', context);
+      } else if (e.code == 'invalid-email') {
+        Utils.flushBarErrorMessage('Please enter a valid email.', context);
+      } else {
+        Utils.flushBarErrorMessage(
+            e.message ?? 'Sign up failed. Please try again.', context);
       }
     } catch (e) {
-      Utils.flushBarErrorMessage(e.toString(), context);
+      if (mounted) {
+        Utils.flushBarErrorMessage(e.toString(), context);
+      }
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -111,13 +130,10 @@ class _SignUpViewState extends State<SignUpView> {
                             vertical: 12.0, horizontal: 15),
                         child: TextFormField(
                           controller: nameController,
-                          validator: (value) {
-                            if (value!.isEmpty) {
-                              return Utils.flushBarErrorMessage(
-                                  "Please Enter Name", context);
-                            }
-                            return null;
-                          },
+                          textInputAction: TextInputAction.next,
+                          textCapitalization: TextCapitalization.words,
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                          validator: AuthValidators.name,
                           decoration: InputDecoration(
                             hintText: "Enter Name",
                             hintStyle:
@@ -140,18 +156,11 @@ class _SignUpViewState extends State<SignUpView> {
                         padding: const EdgeInsets.symmetric(
                             vertical: 12.0, horizontal: 15),
                         child: TextFormField(
-                          validator: (value) {
-                            if (value!.isEmpty) {
-                              return Utils.flushBarErrorMessage(
-                                  "Please Enter Email", context);
-                            }
-                            if (!value.contains('@') || !value.contains('.')) {
-                              return 'Invalid email format';
-                            }
-                            return null;
-                          },
+                          validator: AuthValidators.email,
                           controller: emailController,
                           keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
                           decoration: InputDecoration(
                             hintText: "Enter Email",
                             hintStyle:
@@ -177,17 +186,11 @@ class _SignUpViewState extends State<SignUpView> {
                                 vertical: 12.0, horizontal: 15),
                             child: TextFormField(
                               obscureText: !value.securepass,
-                              validator: (value) {
-                                if (value!.isEmpty) {
-                                  return Utils.flushBarErrorMessage(
-                                      "Please Enter Password", context);
-                                } else if (value!.length < 6) {
-                                  return Utils.flushBarErrorMessage(
-                                      "Please Enter 6 digit password", context);
-                                }
-                                return null;
-                              },
+                              validator: AuthValidators.password,
                               controller: passwordController,
+                              textInputAction: TextInputAction.done,
+                              autovalidateMode: AutovalidateMode.onUserInteraction,
+                              onFieldSubmitted: (_) => SignUp(),
                               decoration: InputDecoration(
                                 hintText: "Enter password",
                                 suffixIcon: InkWell(
@@ -223,15 +226,7 @@ class _SignUpViewState extends State<SignUpView> {
                       ),
                       const Spacer(),
                       InkWell(
-                        onTap: () async {
-                          if (_formkey.currentState!.validate()) {
-                            setState(() {
-                              isLoading = false;
-                            });
-                            await SignUp();
-                          }
-                          ;
-                        },
+                        onTap: isLoading ? null : SignUp,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 15.0),
                           child: Container(

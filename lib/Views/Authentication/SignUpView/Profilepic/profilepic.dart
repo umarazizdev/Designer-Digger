@@ -1,7 +1,8 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:designerdigger/Utilities/colors.dart';
+import 'package:designerdigger/Utilities/profile_image_service.dart';
+import 'package:designerdigger/Utilities/user_document_utils.dart';
 import 'package:designerdigger/Utilities/utils.dart';
 import 'package:designerdigger/main.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -17,44 +18,77 @@ class Profilepic extends StatefulWidget {
 }
 
 class _ProfilepicState extends State<Profilepic> {
-  final DocumentReference users =
-      FirebaseFirestore.instance.collection('users').doc(box.read('uid'));
-
-  adddata() {
-    final DocumentReference user =
-        FirebaseFirestore.instance.collection('users').doc(box.read('uid'));
-    final Map<String, dynamic> newData = {
-      'avatar':
-          "https://www.lightsong.net/wp-content/uploads/2020/12/blank-profile-circle.png",
-    };
-    user.set(
-      newData,
-      SetOptions(merge: true),
-    );
-  }
-
   XFile? singleImage;
-  chooseImage() async {
-    return await ImagePicker().pickImage(source: ImageSource.gallery);
+  bool isLoading = false;
+
+  Future<void> chooseImage() async {
+    final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (image != null && mounted) {
+      setState(() {
+        singleImage = image;
+      });
+    }
   }
 
-  String getImageName(XFile image) {
-    return image.path.split("/").last;
-  }
+  Future<void> completeProfile({required bool skip}) async {
+    if (isLoading) return;
 
-  Future<String> uploadImage(XFile image) async {
-    Reference db = FirebaseStorage.instance.ref("image/${getImageName(image)}");
-
-    await db.putFile(File(image.path));
-    return await db.getDownloadURL().then((value) async {
-      final Map<String, dynamic> imageData = {'avatar': value};
-      users.set(
-        imageData,
-        SetOptions(merge: true),
+    if (!skip && singleImage == null) {
+      Utils.flushBarErrorMessage(
+        'Please select a photo or tap Skip to continue.',
+        context,
       );
+      return;
+    }
 
-      return '';
+    setState(() {
+      isLoading = true;
     });
+
+    try {
+      if (skip) {
+        await ProfileImageService.saveDefaultAvatar();
+      } else {
+        try {
+          final url =
+              await ProfileImageService.uploadProfileImage(singleImage!);
+          await ProfileImageService.saveAvatar(url);
+        } on FirebaseException catch (e) {
+          await ProfileImageService.saveDefaultAvatar();
+          if (mounted) {
+            final isAuthIssue = e.code == 'unauthorized' ||
+                e.code == 'permission-denied' ||
+                e.code == 'storage/unauthorized';
+            Utils.flushBarErrorMessage(
+              isAuthIssue
+                  ? 'Upload denied. Confirm digger_app/ rules are published and you are signed in.'
+                  : 'Upload failed (${e.code}). Using default photo.',
+              context,
+            );
+          }
+        }
+      }
+
+      box.write('islogin', true);
+
+      if (mounted) {
+        Utils.toastmessage('SignUp successfully');
+        GoRouter.of(context).go('/mainview');
+      }
+    } catch (e) {
+      if (mounted) {
+        Utils.flushBarErrorMessage(
+          'Could not save profile. Please try again.',
+          context,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -70,12 +104,7 @@ class _ProfilepicState extends State<Profilepic> {
                 height: sc.height * 0.1,
               ),
               InkWell(
-                onTap: () async {
-                  singleImage = await chooseImage();
-                  if (singleImage != null && singleImage!.path.isNotEmpty) {
-                    setState(() {});
-                  }
-                },
+                onTap: chooseImage,
                 child: Container(
                   height: sc.height / 3,
                   width: sc.width / 2,
@@ -89,7 +118,7 @@ class _ProfilepicState extends State<Profilepic> {
                           )
                         : const DecorationImage(
                             image: NetworkImage(
-                              "https://www.lightsong.net/wp-content/uploads/2020/12/blank-profile-circle.png",
+                              UserDocumentUtils.defaultAvatar,
                             ),
                           ),
                   ),
@@ -99,12 +128,7 @@ class _ProfilepicState extends State<Profilepic> {
                 height: sc.height * 0.3,
               ),
               InkWell(
-                onTap: () {
-                  adddata();
-                  Utils.toastmessage("SignUp successfully");
-                  GoRouter.of(context).go('/mainview');
-                  box.write('islogin', true);
-                },
+                onTap: isLoading ? null : () => completeProfile(skip: true),
                 child: Container(
                   height: sc.height * 0.07,
                   width: sc.width / 1.25,
@@ -112,15 +136,24 @@ class _ProfilepicState extends State<Profilepic> {
                     color: lonboardingclr,
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  child: const Center(
-                    child: Text(
-                      "Skip",
-                      style: TextStyle(
-                        color: whiteclr,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                  child: Center(
+                    child: isLoading
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              color: whiteclr,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            'Skip',
+                            style: TextStyle(
+                              color: whiteclr,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                   ),
                 ),
               ),
@@ -128,12 +161,7 @@ class _ProfilepicState extends State<Profilepic> {
                 height: sc.height * 0.05,
               ),
               InkWell(
-                onTap: () {
-                  uploadImage(singleImage!);
-                  Utils.toastmessage("SignUp successfully");
-                  GoRouter.of(context).go('/mainview');
-                  box.write('islogin', true);
-                },
+                onTap: isLoading ? null : () => completeProfile(skip: false),
                 child: Container(
                   height: sc.height * 0.07,
                   width: sc.width / 1.25,
@@ -143,11 +171,12 @@ class _ProfilepicState extends State<Profilepic> {
                   ),
                   child: const Center(
                     child: Text(
-                      "Next",
+                      'Next',
                       style: TextStyle(
-                          color: onboardingclr,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500),
+                        color: onboardingclr,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ),

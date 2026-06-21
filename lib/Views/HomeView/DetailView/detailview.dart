@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:designerdigger/Utilities/Provider/adonesprovider.dart';
 import 'package:designerdigger/Utilities/colors.dart';
+import 'package:designerdigger/Utilities/digger_user_service.dart';
 import 'package:designerdigger/Utilities/utils.dart';
 import 'package:designerdigger/main.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +19,7 @@ class DetailView extends StatefulWidget {
 class _DetailViewState extends State<DetailView> {
   String activecatt = '';
   CollectionReference users =
-      FirebaseFirestore.instance.collection('cartitems');
+      FirebaseFirestore.instance.collection('digger_cartitems');
   Future<void> addUser(
     String image,
     productname,
@@ -26,13 +27,14 @@ class _DetailViewState extends State<DetailView> {
     quantity,
   ) {
     return users
-        .doc(widget.detail.toString())
+        .doc(DiggerUserService.userItemDocId(widget.detail.toString()))
         .set({
           'image': image,
           'productname': productname,
           'productprice': productprice,
           'adones': quantity,
-          'uid': box.read('uid'),
+          'productId': widget.detail.toString(),
+          'uid': DiggerUserService.currentUid ?? box.read('uid'),
         })
         .then((value) => print(""))
         .catchError(
@@ -45,7 +47,7 @@ class _DetailViewState extends State<DetailView> {
   Widget build(BuildContext context) {
     Size sc = MediaQuery.of(context).size;
     CollectionReference users =
-        FirebaseFirestore.instance.collection('products');
+        FirebaseFirestore.instance.collection('digger_products');
 
     return FutureBuilder<DocumentSnapshot>(
       future: users.doc(widget.detail.toString()).get(),

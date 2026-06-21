@@ -1,34 +1,129 @@
 {
   "project_info": {
-    "project_number": "851171060037",
-    "project_id": "designerdigger-8549d",
-    "storage_bucket": "designerdigger-8549d.appspot.com"
+    "project_number": "955899718417",
+    "project_id": "gotourrd",
+    "storage_bucket": "gotourrd.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:851171060037:android:3dcad09c9e79cc9d92362c",
+        "mobilesdk_app_id": "1:955899718417:android:f4c57263f7731ab28bfab0",
         "android_client_info": {
           "package_name": "com.example.designerdigger"
         }
       },
       "oauth_client": [
         {
-          "client_id": "851171060037-l49sljtpd987e7i25c5j3moe27ah3ssu.apps.googleusercontent.com",
+          "client_id": "955899718417-7qdqh88jbl9m94tjtu2oa1dhht5lhrvb.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyC9cdfHXBPnT2vGUXSAm07cwK9v5qgZnf0"
+          "current_key": "AIzaSyCkX_6CbWcKeqbLUJJCUp2Llc9uJUumQeg"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "851171060037-l49sljtpd987e7i25c5j3moe27ah3ssu.apps.googleusercontent.com",
+              "client_id": "955899718417-7qdqh88jbl9m94tjtu2oa1dhht5lhrvb.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "955899718417-bhgt580ij49ai3ovgbi1mk2nkrvcme4h.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.studentComplaintApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:955899718417:android:8412dec6452a053d8bfab0",
+        "android_client_info": {
+          "package_name": "com.example.gotourrd"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "955899718417-h9vr8f781hpt7aariakldh6oo3n3sfur.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.gotourrd",
+            "certificate_hash": "183452b52e2adbec2608dbfc21ad0299cf25d521"
+          }
+        },
+        {
+          "client_id": "955899718417-7qdqh88jbl9m94tjtu2oa1dhht5lhrvb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCkX_6CbWcKeqbLUJJCUp2Llc9uJUumQeg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "955899718417-7qdqh88jbl9m94tjtu2oa1dhht5lhrvb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "955899718417-bhgt580ij49ai3ovgbi1mk2nkrvcme4h.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.studentComplaintApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:955899718417:android:52709155ffb72e9b8bfab0",
+        "android_client_info": {
+          "package_name": "com.example.student_complaint_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "955899718417-da8j4lfa6m2gihgeadm3bvttdsss62q8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.student_complaint_app",
+            "certificate_hash": "45b956fddce7bf6996c082af0faad685d699374b"
+          }
+        },
+        {
+          "client_id": "955899718417-7qdqh88jbl9m94tjtu2oa1dhht5lhrvb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCkX_6CbWcKeqbLUJJCUp2Llc9uJUumQeg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "955899718417-7qdqh88jbl9m94tjtu2oa1dhht5lhrvb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "955899718417-bhgt580ij49ai3ovgbi1mk2nkrvcme4h.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.studentComplaintApp"
+              }
             }
           ]
         }

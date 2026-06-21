@@ -17,7 +17,7 @@ class FavouriteView extends StatefulWidget {
 
 class _FavouriteViewState extends State<FavouriteView> {
   CollectionReference removefavouritecollection =
-      FirebaseFirestore.instance.collection('favourites');
+      FirebaseFirestore.instance.collection('digger_favourites');
 
   Future<void> deletefavourite(String docu, data) {
     print("documentid??????????? $docu ");
@@ -30,7 +30,7 @@ class _FavouriteViewState extends State<FavouriteView> {
   }
 
   final Stream<QuerySnapshot> favouritecollection = FirebaseFirestore.instance
-      .collection('favourites')
+      .collection('digger_favourites')
       .where('uid', isEqualTo: box.read('uid'))
       .snapshots();
 

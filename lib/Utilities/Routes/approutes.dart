@@ -1,8 +1,9 @@
 import 'package:designerdigger/Utilities/ThemeChanger/themechanger.dart';
 import 'package:designerdigger/Views/AddProducts/addproducts.dart';
 import 'package:designerdigger/Views/AddProducts/addpromotions.dart';
-import 'package:designerdigger/Views/Authentication/SignUpView/PhoneNumber/phonenumber.dart';
-import 'package:designerdigger/Views/Authentication/SignUpView/PhoneNumber/verifynumber.dart';
+// Phone verification disabled — email signup goes directly to home.
+// import 'package:designerdigger/Views/Authentication/SignUpView/PhoneNumber/phonenumber.dart';
+// import 'package:designerdigger/Views/Authentication/SignUpView/PhoneNumber/verifynumber.dart';
 import 'package:designerdigger/Views/CartView/cartview.dart';
 import 'package:designerdigger/Views/HomeView/DetailView/detailview.dart';
 import 'package:designerdigger/Views/HomeView/homeview.dart';
@@ -75,21 +76,22 @@ class AppRoute {
           name: state.extra.toString(),
         ),
       ),
-      GoRoute(
-        path: '/phonenumberview',
-        builder: (BuildContext context, GoRouterState state) =>
-            const PhoneNumberView(),
-      ),
-      GoRoute(
-          path: '/verifyphonenumberview',
-          builder: (BuildContext context, GoRouterState state) {
-            final queryParams = state.uri.queryParameters;
-            final id = queryParams['id'];
-            return VerifyPhoneNumberView(
-              phonenumb: state.extra.toString(),
-              id: id.toString(),
-            );
-          }),
+      // Phone verification disabled — signup uses email only, then /profilepic → /mainview.
+      // GoRoute(
+      //   path: '/phonenumberview',
+      //   builder: (BuildContext context, GoRouterState state) =>
+      //       const PhoneNumberView(),
+      // ),
+      // GoRoute(
+      //     path: '/verifyphonenumberview',
+      //     builder: (BuildContext context, GoRouterState state) {
+      //       final queryParams = state.uri.queryParameters;
+      //       final id = queryParams['id'];
+      //       return VerifyPhoneNumberView(
+      //         phonenumb: state.extra.toString(),
+      //         id: id.toString(),
+      //       );
+      //     }),
       GoRoute(
         path: '/detailview',
         builder: (BuildContext context, GoRouterState state) => DetailView(

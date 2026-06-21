@@ -1,8 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:designerdigger/Utilities/colors.dart';
+import 'package:designerdigger/Utilities/digger_user_service.dart';
 import 'package:designerdigger/Utilities/utils.dart';
 import 'package:designerdigger/main.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class CartItemWidget extends StatefulWidget {
@@ -21,81 +22,82 @@ class CartItemWidget extends StatefulWidget {
 class _CartItemWidgetState extends State<CartItemWidget> {
   bool isCartItem = false;
 
+  String get _cartDocId => DiggerUserService.userItemDocId(widget.docid);
+
   @override
   void initState() {
     super.initState();
     checkCartStatus();
   }
 
-  void checkCartStatus() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
-      return;
+  Future<void> checkCartStatus() async {
+    if (FirebaseAuth.instance.currentUser == null) return;
+
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('digger_cartitems')
+          .doc(_cartDocId)
+          .get();
+
+      if (!mounted) return;
+      setState(() {
+        isCartItem = snapshot.exists;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        isCartItem = false;
+      });
     }
-
-    final snapshot = await FirebaseFirestore.instance
-        .collection('cartitems')
-        .doc(widget.docid)
-        .get();
-
-    setState(() {
-      isCartItem = snapshot.exists;
-    });
   }
 
   Future<void> deleteCart() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
-      return;
-    }
+    if (FirebaseAuth.instance.currentUser == null) return;
 
-    return FirebaseFirestore.instance
-        .collection('cartitems')
-        .doc(widget.docid)
-        .delete()
-        .then((value) =>
-            Utils.toastmessage("${widget.productname} removed from cartitems"))
-        .catchError((error) => Utils.flushBarErrorMessage(
-            "Failed to delete user: $error", context));
+    await FirebaseFirestore.instance
+        .collection('digger_cartitems')
+        .doc(_cartDocId)
+        .delete();
+    if (mounted) {
+      Utils.toastmessage('${widget.productname} removed from cart');
+    }
   }
 
   Future<void> addCart() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
-      return;
-    }
+    if (FirebaseAuth.instance.currentUser == null) return;
 
-    return FirebaseFirestore.instance
-        .collection('cartitems')
-        .doc(widget.docid)
-        .set({
-          'image': widget.image,
-          'productname': widget.productname,
-          'productprice': widget.productprice,
-          'uid': box.read('uid'),
-        })
-        .then((value) =>
-            Utils.toastmessage("${widget.productname} added to favourites "))
-        .catchError(
-          (error) =>
-              Utils.flushBarErrorMessage("Failed to add user: $error", context),
-        );
+    await FirebaseFirestore.instance.collection('digger_cartitems').doc(_cartDocId).set({
+      'image': widget.image,
+      'productname': widget.productname,
+      'productprice': widget.productprice,
+      'productId': widget.docid,
+      'uid': DiggerUserService.currentUid ?? box.read('uid'),
+    });
+    if (mounted) {
+      Utils.toastmessage('${widget.productname} added to cart');
+    }
   }
 
-  void toggleCart() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
-      return;
-    }
+  Future<void> toggleCart() async {
+    if (FirebaseAuth.instance.currentUser == null) return;
 
+    final wasInCart = isCartItem;
     setState(() {
       isCartItem = !isCartItem;
     });
 
-    if (isCartItem) {
-      await addCart();
-    } else {
-      await deleteCart();
+    try {
+      if (!wasInCart) {
+        await addCart();
+      } else {
+        await deleteCart();
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        isCartItem = wasInCart;
+      });
+      Utils.flushBarErrorMessage('Could not update cart.', context);
     }
   }
 

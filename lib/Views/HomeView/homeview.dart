@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:designerdigger/Utilities/Provider/categoryprovider.dart';
 import 'package:designerdigger/Utilities/Provider/favouriteprovider.dart';
 import 'package:designerdigger/Utilities/colors.dart';
+import 'package:designerdigger/Utilities/digger_user_service.dart';
+import 'package:designerdigger/Utilities/user_document_utils.dart';
 import 'package:designerdigger/Widgets/HomeWidgets/addcartwidget.dart';
 import 'package:designerdigger/Widgets/HomeWidgets/categorywidget.dart';
 import 'package:designerdigger/Widgets/HomeWidgets/favouritewidget.dart';
@@ -20,10 +22,8 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  final Stream<QuerySnapshot> _profileStream = FirebaseFirestore.instance
-      .collection('users')
-      .where('uid', isEqualTo: box.read('uid'))
-      .snapshots();
+  Stream<DocumentSnapshot> get _profileStream =>
+      DiggerUserService.profileStream();
 
   List allresults = [];
   List resultList = [];
@@ -31,7 +31,7 @@ class _HomeViewState extends State<HomeView> {
 
   getClientStream() async {
     var dat = await FirebaseFirestore.instance
-        .collection('products')
+        .collection('digger_products')
         .orderBy('productname')
         .get();
 
@@ -99,49 +99,47 @@ class _HomeViewState extends State<HomeView> {
             padding: const EdgeInsets.only(left: 12, right: 12),
             child: Column(
               children: [
-                StreamBuilder<QuerySnapshot>(
+                StreamBuilder<DocumentSnapshot>(
                   stream: _profileStream,
                   builder: (BuildContext context,
-                      AsyncSnapshot<QuerySnapshot> snapshot) {
-                    if (snapshot.hasError) {
-                      return const Text('');
-                    }
-
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Text("");
-                    }
+                      AsyncSnapshot<DocumentSnapshot> snapshot) {
+                    final data = snapshot.data;
+                    final hasProfile =
+                        data != null && data.exists && !snapshot.hasError;
+                    final avatarUrl = hasProfile
+                        ? UserDocumentUtils.avatar(data)
+                        : UserDocumentUtils.defaultAvatar;
+                    final name = hasProfile
+                        ? UserDocumentUtils.name(data)
+                        : (box.read('name')?.toString() ?? 'User');
 
                     return SizedBox(
                       height: sc.height * 0.067,
-                      child: ListView.builder(
-                        itemCount: 1,
-                        itemBuilder: (context, index) {
-                          final data = snapshot.data!.docs[index];
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Menu",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    color: Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? whiteclr
-                                        : blackclr,
-                                    fontSize: sc.height * 0.05),
-                              ),
-                              InkWell(
-                                onTap: () {
-                                  var name = data['name'];
-                                  context.push('/editprofileview', extra: name);
-                                },
-                                child: CircleAvatar(
-                                  foregroundImage: NetworkImage(data['avatar']),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Menu",
+                            style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? whiteclr
+                                    : blackclr,
+                                fontSize: sc.height * 0.05),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              context.push(
+                                '/editprofileview',
+                                extra: name,
+                              );
+                            },
+                            child: CircleAvatar(
+                              backgroundImage: NetworkImage(avatarUrl),
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   },
@@ -325,10 +323,10 @@ class _HomeViewState extends State<HomeView> {
                           return StreamBuilder<QuerySnapshot>(
                             stream: value.activecat == 'All'
                                 ? FirebaseFirestore.instance
-                                    .collection('products')
+                                    .collection('digger_products')
                                     .snapshots()
                                 : FirebaseFirestore.instance
-                                    .collection('products')
+                                    .collection('digger_products')
                                     .where('category',
                                         isEqualTo: value.activecat)
                                     .snapshots(),
