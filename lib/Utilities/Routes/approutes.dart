@@ -10,6 +10,8 @@ import 'package:designerdigger/Views/HomeView/homeview.dart';
 import 'package:designerdigger/Views/MainView/mainview.dart';
 import 'package:designerdigger/Views/OnboardingView/onboardingview.dart';
 import 'package:designerdigger/Views/Profileview/EditProfile/editprofile.dart';
+import 'package:designerdigger/Views/Profileview/aboutusview.dart';
+import 'package:designerdigger/Views/Profileview/contactusview.dart';
 import 'package:designerdigger/Views/Profileview/settingsview.dart';
 import 'package:designerdigger/Views/Authentication/SignInView/signinview.dart';
 import 'package:designerdigger/Views/Authentication/SignUpView/Profilepic/profilepic.dart';
@@ -81,6 +83,16 @@ class AppRoute {
         path: '/settingsview',
         builder: (BuildContext context, GoRouterState state) =>
             const SettingsView(),
+      ),
+      GoRoute(
+        path: '/aboutusview',
+        builder: (BuildContext context, GoRouterState state) =>
+            const AboutUsView(),
+      ),
+      GoRoute(
+        path: '/contactusview',
+        builder: (BuildContext context, GoRouterState state) =>
+            const ContactUsView(),
       ),
       // Phone verification disabled — signup uses email only, then /profilepic → /mainview.
       // GoRoute(
