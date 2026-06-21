@@ -29,26 +29,37 @@ class _HomeViewState extends State<HomeView> {
   List resultList = [];
   final CategoryProvider categoryProvider = CategoryProvider();
 
-  getClientStream() async {
-    var dat = await FirebaseFirestore.instance
-        .collection('digger_products')
-        .orderBy('productname')
-        .get();
+  bool _productsLoaded = false;
 
-    setState(() {
-      allresults = dat.docs;
-    });
-    searchResultList();
+  Future<void> getClientStream() async {
+    if (_productsLoaded) return;
+
+    try {
+      final dat = await FirebaseFirestore.instance
+          .collection('digger_products')
+          .orderBy('productname')
+          .get();
+
+      if (!mounted) return;
+
+      setState(() {
+        allresults = dat.docs;
+        _productsLoaded = true;
+      });
+      searchResultList();
+    } catch (_) {
+      if (!mounted) return;
+    }
   }
 
   @override
   void initState() {
     searchController.addListener(onSearchChanged);
     super.initState();
+    getClientStream();
   }
 
   onSearchChanged() {
-    print(searchController.text);
     searchResultList();
   }
 
@@ -62,9 +73,8 @@ class _HomeViewState extends State<HomeView> {
           showResults.add(clientSnapshot);
         }
       }
-    } else {
-      // showResults = List.from(allresults);
     }
+    if (!mounted) return;
     setState(() {
       resultList = showResults;
     });
@@ -80,14 +90,7 @@ class _HomeViewState extends State<HomeView> {
   }
 
   @override
-  void didChangeDependencies() {
-    getClientStream();
-    super.didChangeDependencies();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    print(box.read('uid'));
     Size sc = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: Theme.of(context).brightness == Brightness.dark

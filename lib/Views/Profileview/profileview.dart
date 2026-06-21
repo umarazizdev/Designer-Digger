@@ -2,9 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:designerdigger/Utilities/colors.dart';
 import 'package:designerdigger/Utilities/digger_user_service.dart';
 import 'package:designerdigger/Utilities/user_document_utils.dart';
-import 'package:designerdigger/Utilities/utils.dart';
 import 'package:designerdigger/main.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -21,229 +19,349 @@ class _ProfileViewState extends State<ProfileView> {
 
   @override
   Widget build(BuildContext context) {
-    Size sc = MediaQuery.of(context).size;
-    return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark
-          ? darkbackgroundclr
-          : whiteclr,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              Container(
-                height: sc.height / 4,
-                width: sc.width,
-                color: onboardingclr,
-              ),
-              Positioned(
-                  child: Column(
-                children: [
-                  SizedBox(
-                    height: sc.height * 0.07,
-                  ),
-                  StreamBuilder<DocumentSnapshot>(
-                    stream: _usersStream,
-                    builder: (BuildContext context,
-                        AsyncSnapshot<DocumentSnapshot> snapshot) {
-                      final data = snapshot.data;
-                      final hasProfile =
-                          data != null && data.exists && !snapshot.hasError;
-                      final avatarUrl = hasProfile
-                          ? UserDocumentUtils.avatar(data)
-                          : UserDocumentUtils.defaultAvatar;
-                      final name = hasProfile
-                          ? UserDocumentUtils.name(data)
-                          : (box.read('name')?.toString() ?? 'User');
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark ? ldarkbackgroundclr : whiteclr;
+    final pageColor = isDark ? darkbackgroundclr : lgreyclr;
 
-                      return Stack(
-                        children: [
-                          Center(
-                            child: SizedBox(
-                              height: sc.height / 4,
-                              width: sc.width / 2,
-                              child: CircleAvatar(
-                                backgroundImage: NetworkImage(avatarUrl),
+    return Scaffold(
+      backgroundColor: pageColor,
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: _usersStream,
+        builder: (context, snapshot) {
+          final data = snapshot.data;
+          final hasProfile = data != null && data.exists && !snapshot.hasError;
+
+          final avatarUrl = hasProfile
+              ? UserDocumentUtils.avatar(data)
+              : UserDocumentUtils.defaultAvatar;
+          final name = hasProfile
+              ? UserDocumentUtils.name(data)
+              : (box.read('name')?.toString() ?? 'User');
+          final email = hasProfile
+              ? UserDocumentUtils.email(data)
+              : (box.read('email')?.toString() ?? '');
+          final address = hasProfile ? UserDocumentUtils.address(data) : '';
+          final hasAddress = address.trim().isNotEmpty;
+
+          return SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              children: [
+                _ProfileHeader(
+                  avatarUrl: avatarUrl,
+                  name: name,
+                  isDark: isDark,
+                  onEdit: () => context.push('/editprofileview', extra: name),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                  child: Column(
+                    children: [
+                      _ProfileCard(
+                        color: surfaceColor,
+                        child: Column(
+                          children: [
+                            _InfoTile(
+                              icon: Icons.email_outlined,
+                              label: 'Email',
+                              value: email.isEmpty ? 'Not available' : email,
+                              isDark: isDark,
+                              isPlaceholder: email.isEmpty,
+                            ),
+                            Divider(
+                              height: 1,
+                              color: isDark
+                                  ? Colors.white12
+                                  : greyclr.withValues(alpha: 0.25),
+                            ),
+                            _InfoTile(
+                              icon: Icons.location_on_outlined,
+                              label: 'Address',
+                              value: hasAddress
+                                  ? address
+                                  : 'Tap edit button along with profile pic to add address',
+                              isDark: isDark,
+                              isPlaceholder: !hasAddress,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _ProfileCard(
+                        color: surfaceColor,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            onTap: () => context.push('/settingsview'),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    height: 44,
+                                    width: 44,
+                                    decoration: BoxDecoration(
+                                      color:
+                                          onboardingclr.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(
+                                      Icons.settings_outlined,
+                                      color: onboardingclr,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Settings',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            color: isDark ? whiteclr : blackclr,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'Account, appearance & more',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color:
+                                                greyclr.withValues(alpha: 0.9),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(
+                                    Icons.chevron_right,
+                                    color: greyclr.withValues(alpha: 0.8),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                          Positioned(
-                              right: 100,
-                              top: 10,
-                              child: Container(
-                                height: sc.height * 0.065,
-                                width: sc.width * 0.095,
-                                decoration: const BoxDecoration(
-                                  color: whiteclr,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Center(
-                                  child: IconButton(
-                                    onPressed: () {
-                                      context.push(
-                                        '/editprofileview',
-                                        extra: name,
-                                      );
-                                    },
-                                    icon: const Icon(
-                                      Icons.edit,
-                                      color: blackclr,
-                                    ),
-                                  ),
-                                ),
-                              ))
-                        ],
-                      );
-                    },
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ))
-            ],
-          ),
-          const Spacer(),
-          StreamBuilder<DocumentSnapshot>(
-            stream: _usersStream,
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return _settingsMenu(context, sc, isAdmin: false);
-              }
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
 
-              final isAdmin = UserDocumentUtils.isAdmin(snapshot.data);
+class _ProfileHeader extends StatelessWidget {
+  final String avatarUrl;
+  final String name;
+  final bool isDark;
+  final VoidCallback onEdit;
 
-              return _settingsMenu(context, sc, isAdmin: isAdmin);
-            },
+  const _ProfileHeader({
+    required this.avatarUrl,
+    required this.name,
+    required this.isDark,
+    required this.onEdit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.topCenter,
+        children: [
+          Container(
+            height: 148,
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [onboardingclr, lonboardingclr],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
           ),
-          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.only(top: 56, bottom: 20),
+            child: Column(
+              children: [
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: whiteclr,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.12),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: CircleAvatar(
+                        radius: 52,
+                        backgroundImage: NetworkImage(avatarUrl),
+                      ),
+                    ),
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Material(
+                        color: whiteclr,
+                        shape: const CircleBorder(),
+                        elevation: 2,
+                        child: InkWell(
+                          customBorder: const CircleBorder(),
+                          onTap: onEdit,
+                          child: const Padding(
+                            padding: EdgeInsets.all(8),
+                            child: Icon(
+                              Icons.edit_outlined,
+                              size: 18,
+                              color: onboardingclr,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  name,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? whiteclr : blackclr,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'My Profile',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: greyclr.withValues(alpha: 0.85),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
+}
 
-  Widget _settingsMenu(BuildContext context, Size sc, {required bool isAdmin}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (isAdmin) ...[
-          InkWell(
-            onTap: () {
-              GoRouter.of(context).push('/addpromotionsview');
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(left: 15.0, top: 10),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.add_photo_alternate_outlined,
-                    size: sc.height * 0.04,
-                  ),
-                  10.pw,
-                  const Text(
-                    'Add Promotions',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ],
-              ),
-            ),
+class _ProfileCard extends StatelessWidget {
+  final Widget child;
+  final Color color;
+
+  const _ProfileCard({
+    required this.child,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
-          10.ph,
-          const Divider(color: greyclr),
-          InkWell(
-            onTap: () {
-              GoRouter.of(context).push('/addproductsview');
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(left: 15.0, top: 10),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.add_photo_alternate_outlined,
-                    size: sc.height * 0.04,
-                  ),
-                  10.pw,
-                  const Text(
-                    'Add Products',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          10.ph,
-          const Divider(color: greyclr),
         ],
-        InkWell(
-          onTap: () {
-            GoRouter.of(context).push('/cartview');
-          },
-          child: Padding(
-            padding: const EdgeInsets.only(left: 15.0, top: 10),
-            child: Row(
+      ),
+      child: child,
+    );
+  }
+}
+
+class _InfoTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool isDark;
+  final bool isPlaceholder;
+
+  const _InfoTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.isDark,
+    this.isPlaceholder = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 40,
+            width: 40,
+            decoration: BoxDecoration(
+              color: onboardingclr.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 20, color: onboardingclr),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.shopping_cart_outlined,
-                  size: sc.height * 0.04,
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: greyclr.withValues(alpha: 0.95),
+                    letterSpacing: 0.3,
+                  ),
                 ),
-                10.pw,
-                const Text(
-                  'Shopping Cart',
-                  style: TextStyle(fontSize: 16),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 15,
+                    height: 1.35,
+                    fontStyle:
+                        isPlaceholder ? FontStyle.italic : FontStyle.normal,
+                    color: isPlaceholder
+                        ? greyclr
+                        : (isDark ? whiteclr : blackclr),
+                  ),
                 ),
               ],
             ),
           ),
-        ),
-        10.ph,
-        const Divider(color: greyclr),
-        InkWell(
-          onTap: () {
-            context.push('/darkview');
-          },
-          child: Padding(
-            padding: const EdgeInsets.only(left: 15.0, top: 10),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.dark_mode_outlined,
-                  size: sc.height * 0.04,
-                ),
-                10.pw,
-                const Text(
-                  'Dark Mode',
-                  style: TextStyle(fontSize: 16),
-                ),
-              ],
-            ),
-          ),
-        ),
-        10.ph,
-        const Divider(color: greyclr),
-        InkWell(
-          onTap: () async {
-            box.write('islogin', false);
-            await FirebaseAuth.instance.signOut();
-            if (context.mounted) {
-              GoRouter.of(context).go('/signin');
-            }
-          },
-          child: Padding(
-            padding: const EdgeInsets.only(left: 15.0, top: 10),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.logout,
-                  size: sc.height * 0.04,
-                ),
-                10.pw,
-                const Text(
-                  'Logout',
-                  style: TextStyle(fontSize: 16),
-                ),
-              ],
-            ),
-          ),
-        ),
-        10.ph,
-      ],
+        ],
+      ),
     );
   }
 }

@@ -230,26 +230,7 @@ class _EditProfileState extends State<EditProfile> {
                                 SizedBox(
                                   height: sc.height * 0.015,
                                 ),
-                                Text(
-                                  'Phone Number',
-                                  style: TextStyle(
-                                    color: Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? whiteclr
-                                        : greyclr,
-                                  ),
-                                ),
-                                TextFormField(
-                                  readOnly: true,
-                                  decoration: InputDecoration(
-                                    hintText: hasProfile
-                                        ? UserDocumentUtils.phoneNumber(data)
-                                        : 'Not provided',
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: sc.height * 0.015,
-                                ),
+                                // Phone number hidden — phone verification flow is disabled.
                                 Text(
                                   'Email',
                                   style: TextStyle(

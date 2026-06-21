@@ -1,0 +1,22 @@
+// Paste INSIDE your existing Firestore rules (match /databases/{database}/documents { ... })
+// Update cart + favourites blocks if you already added older digger_* rules.
+
+    match /digger_cartitems/{itemId} {
+      allow read: if isSignedIn()
+        && itemId.matches('^' + request.auth.uid + '_.*');
+      allow create: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && itemId.matches('^' + request.auth.uid + '_.*');
+      allow update, delete: if isSignedIn()
+        && resource.data.uid == request.auth.uid;
+    }
+
+    match /digger_favourites/{itemId} {
+      allow read: if isSignedIn()
+        && itemId.matches('^' + request.auth.uid + '_.*');
+      allow create: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && itemId.matches('^' + request.auth.uid + '_.*');
+      allow update, delete: if isSignedIn()
+        && resource.data.uid == request.auth.uid;
+    }

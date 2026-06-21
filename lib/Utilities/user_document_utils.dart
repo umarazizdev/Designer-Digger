@@ -30,6 +30,10 @@ class UserDocumentUtils {
     return field(doc, 'email', fallback: '');
   }
 
+  static String address(DocumentSnapshot doc) {
+    return field(doc, 'address', fallback: '');
+  }
+
   static String phoneNumber(DocumentSnapshot doc) {
     return field(doc, 'phonenumber', fallback: 'Not provided');
   }
